@@ -1,0 +1,97 @@
+[
+    {
+        "domain": "www.weg.net",
+        "expiry": 1757952039,
+        "httpOnly": true,
+        "name": "wegcookie",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": true,
+        "value": "2603155466.47873.0000"
+    },
+    {
+        "domain": "www.weg.net",
+        "httpOnly": true,
+        "name": "BIGipServer~k8s-prd-op~Shared~ingress_prd_easyux_sve_faro_gateway",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": true,
+        "value": "1025966090.24441.0000"
+    },
+    {
+        "domain": ".weg.net",
+        "expiry": 1792508378,
+        "httpOnly": false,
+        "name": "_ga",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": false,
+        "value": "GA1.1.1089107080.1757948379"
+    },
+    {
+        "domain": ".weg.net",
+        "expiry": 1765724379,
+        "httpOnly": false,
+        "name": "_gcl_au",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": false,
+        "value": "1.1.1862413055.1757948379"
+    },
+    {
+        "domain": ".weg.net",
+        "expiry": 1765724379,
+        "httpOnly": false,
+        "name": "_fbp",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": false,
+        "value": "fb.1.1757948377344.729527588125685974"
+    },
+    {
+        "domain": "www.weg.net",
+        "httpOnly": true,
+        "name": "acceleratorSecureGUID",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": true,
+        "value": "08214ef5c9470442f95ba5db0f4afe8c6343e6d1"
+    },
+    {
+        "domain": "www.weg.net",
+        "httpOnly": false,
+        "name": "product.compare.data",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": false,
+        "value": "%5B%5D"
+    },
+    {
+        "domain": ".weg.net",
+        "expiry": 1792508378,
+        "httpOnly": false,
+        "name": "_ga_4BKEV1399K",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": false,
+        "value": "GS2.1.s1757948378$o1$g0$t1757948378$j60$l0$h0"
+    },
+    {
+        "domain": ".weg.net",
+        "httpOnly": false,
+        "name": "ADRUM",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": true,
+        "value": "s=1757948377370&r=https%3A%2F%2Fwww.weg.net%2Fcatalog%2Fweg%2FBR%2Fpt%2Flogin%3F0"
+    },
+    {
+        "domain": "www.weg.net",
+        "httpOnly": true,
+        "name": "JSESSIONID",
+        "path": "/catalog",
+        "sameSite": "Lax",
+        "secure": true,
+        "value": "Y82066-2ea06a65-34aa-473f-a807-fff5d1c59925"
+    }
+]
