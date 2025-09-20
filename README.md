@@ -1,8 +1,17 @@
-# Aplicativo para coleta e ajuste de preços utilizando código WEG
+# Sistema para coleta e análise de dados a partir do código WEG
 
-## Requer biblioteca "xlwings - python" para funcionar
+O sistema utiliza a ferramenta Microsoft Excel para coletar e calcular os valores dos itens, tudo a partir do código WEG de cada produto
 
-## OBS: Não esquecer de usar "xlwings quickstart" para criar o arquivo excel no primeiro uso.
-Também não esquecer de conceder as permissões de uso (necessário apenas no primeiro uso)
+## Dependências:
+```
+Python
+Selenium
+xlwings
+```
 
-## ATUALIZAR PARA PLAYWRIGHT ASSIM QUE POSSÍVEL!
+# Não esquecer de gerar o primeiro arquivo excel através do comando
+```
+xlwings quickstart
+```
+
+## Ao executar pela primeira vez, certificar-se de conceder as permissões necessárias (o próprio excel solicitará-las)
