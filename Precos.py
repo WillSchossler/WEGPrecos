@@ -1,13 +1,31 @@
 import os
-import json
 import xlwings as xl
+from playwright.sync_api import sync_playwright, expect, TimeoutError
 
-from selenium.webdriver import Edge
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.edge.options import Options
-from selenium.webdriver.support.wait import WebDriverWait
-from selenium.webdriver.support.expected_conditions import presence_of_element_located
+
+
+@xl.func
+def formatar(numero):
+        """ Formata um valor do tipo 'R$ 12.345,00' para 12345.00 ou remove o % """
+        try:  # Bloco try pra evitar problemas. Uma maneira de limpar os campos
+            if ("%" in numero):
+                return float(numero.replace("%", ""))
+            else:            
+                valor = numero.strip("R$ ")
+                valor = valor.replace(".", "")
+                valor = valor.replace(",", ".")
+                return float(valor)
+        except TypeError:
+            return None
+
+
+@xl.func
+def calcular_total(x, y, total, qntd):
+    if x == y:
+        return float(total) * qntd
+    else:
+        return None
+
 
 
 
@@ -60,182 +78,98 @@ class Excel():
 
 
 
-class WEG():
-    def __init__(self, login, senha, documento: Excel):
-        self.login = login
-        self.senha = senha
-        self.documento = documento  # Objeto fundamental, ele quem irá passar para o excel as informações!
-        self.pages = {"login": "https://www.weg.net/catalog/weg/BR/pt/login",
-                      "account": "https://www.weg.net/catalog/weg/BR/pt/weg-account",
-                      "pesquisar": "https://www.weg.net/catalog/weg/BR/pt/research/delivery-availability"}
+class Scrapper:
+    def __init__(self, usuario: int, senha: int, documento: Excel, codigo: str, quantidade: str):
+        self.codigo = codigo
+        self.quantidade = quantidade
+        self.documento = documento
+        self.user_name = usuario #"gabrielschossler.principal@gmail.com" #"eletronvale@eletronvale.com.br"
+        self.user_pass = senha #"Copoloco140988." #"98@Eletronvale28"
+        self.page_login = "https://www.weg.net/catalog/weg/BR/pt/login"
+        self.page_search = "https://www.weg.net/catalog/weg/BR/pt/research/delivery-availability"
         
-        self.options = Options()
-        self.setup(self.options)        
-        self.driver = Edge(options=self.options)
-        self.entrar()
 
+        with sync_playwright() as playwright:
+            self.browser = playwright.chromium.launch()
 
-    def setup(self, opcoes):
-        """ Pra driblar a segurança da WEG, é preciso definir um agente de usuário! Aqui fazemos automaticamente """
-        try:  # Tentamos localizar um arquivo de configuração
-            with open(f"{caminho}\\config.json", 'r') as configs:
-                arguments = json.load(configs)
-                self.documento.status("Carregando configurações, por favor aguarde.", False)
-                for key in arguments:
-                    opcoes.add_argument(arguments[key])
-        except:  # Se der erro, criamos um
-            self.documento.status("Arquivo de configuração não localizado. Criando um novo.", False)
-            temp_driver = Edge()  # Driver temporário
-            temp_driver.get(self.pages['login'])  # Navega até a WEG
-            agent = temp_driver.execute_script('return navigator.userAgent')  # Coleta o agente!
-            with open(f"{caminho}\\config.json", "w") as configs:  # Salva em um arquivo json
-                arguments = {"agente": f"user-agent={agent}", "mode": "headless"}  #, "mode": "headless"            
-                json.dump(arguments, configs)
-                for key in arguments:
-                    opcoes.add_argument(arguments[key])
-                self.documento.status("Configurações estabelecidas com sucesso!")
-                temp_driver.quit()  # Fecha o driver temporário
-      
-
-    def entrar(self):
-        self.driver.get(self.pages["login"])
-        self.driver.delete_all_cookies()
-        try:  # Tenta carregar os cookies (pode ser que não exista o arquivo JSON)
-            with open(f"{caminho}\\cookies.json", 'r') as dados:
-                cookies = json.load(dados)
-                self.documento.status("Carregando Cookies da sessão antiga. Por favor aguarde.")
-                for cookie in cookies:
-                    self.driver.add_cookie(cookie)
-        except:  # Se por acaso tiverem expirado, ou o arquivo JSON esteja limpo, a gente faz o login!
-            self.documento.status("Cookies não encontrados, criando novo arquivo.", False)
-        
-        self.documento.status("Tentando conexão com servidor WEG.")
-        self.driver.get(self.pages["account"])  # Entra na página da conta!
-        
-        try:  # Verifica se os cookies eram válidos, caso seja, um elemento com o nome de usuário vai ser detectado
-            usuario = self.procurar("//a[@class='navbar-text pull-right xtt-show-popover']/span")         
-        except:  # Se os cookies estiverem expirados, então iniciamos uma nova sessão
-            self.documento.status(f"Cookies inválidos. Estabelecendo nova sessão.", False)
-            self.logar()
-            usuario = self.procurar("//a[@class='navbar-text pull-right xtt-show-popover']/span")
-            
-        self.documento.status(f"Conexão estabelecida! Seja bem vindo {usuario.text}.")
-        self.aceitar()  # No final das contas a gente simplesmente aceita o pop-up de conscientização dos cookies
-
-
-    def pesquisar(self, codigo, quantidade):
-        """ Método PRINCIPAL! Procura itens pelo código WEG e quantidade! """
-        self.documento.status("Conectado ao host de pesquisa.")
-        self.driver.get(self.pages["pesquisar"])  # Primeiro conecta na página de pesquisa (usuário deve estar logad)
-        # Identificação dos campos
-        barra_codigo = self.procurar("//input[@id='productCode']")
-        barra_quantidade = self.procurar("//input[@id='quantity']")
-        # Limpeza (caso haja cookies de preenchimento prévio)
-        barra_codigo.clear()
-        barra_quantidade.clear()
-        # Inserção dos dados
-        barra_codigo.send_keys(codigo)
-        barra_quantidade.send_keys(quantidade)
-        # Validação do formulário!
-        barra_codigo.send_keys(Keys.ENTER)
-        self.documento.status(f"Efetuando pesquisa do item {codigo}.")
+            try:
+                self.documento.status("Conectanto com o servidor")
+                self.context = self.browser.new_context(storage_state=f"{caminho}\\state.json")
+                self.page = self.context.new_page()
+                self.page.goto(self.page_search)
+                expect(self.page.locator('//*[@id="wegDeliveryAvailabilityFormId"]/fieldset/div[2]/div/a')).to_be_visible()
+                self.pesquisar(self.codigo, self.quantidade, goto=False)
+            except FileNotFoundError:
+                """ Não tem arquivo de sessão """
+                self.documento.status("Cookies não encontrados. Iniciando nova sessão", False)
+                self.logar(create=True)
+                self.pesquisar(self.codigo, self.quantidade)
+            except AssertionError:
+                self.documento.status("Cookies expirados. Iniciando nova sessão", False)
+                self.logar()
+                self.pesquisar(self.codigo, self.quantidade)
     
-        try:  # Confere se a página foi carregada corretamente! Se for, então um elemento com o código pesquisado vai corresponder!
-            conferir = WebDriverWait(self.driver, 6).until(presence_of_element_located((By.XPATH, f"//dd[@id='clientName']/span[text()='{codigo}']")))
+    
+            
 
-            # Coleta dos dados retornados! Talvez usar um parser? Ou simplesmente uma lista ou dicionário? APRIMORAR!
-            nome = self.procurar("//dt[text()='Descrição do Produto']/../dd").text
-            valor = self.procurar("//th[text()='Preço Unitário']/../td").text
-            faturamento = self.procurar("//th[text()='Entrega Planejada']/../../../tbody/tr/td[2]").text
-            entrega = self.procurar("//th[text()='Entrega Planejada']/../../../tbody/tr/td[3]").text
-            icms = self.procurar("//tr/td[text()='% ICMS (incluso)']/..//td[2]").text
-            ipi = self.procurar("//tr/td[text()='% IPI (não incluso)']/..//td[2]").text            
+    def pesquisar(self, codigo, quantidade, goto=True):        
+        if goto:
+            self.page.goto(self.page_search)
+        expect(self.page.locator('//*[@id="productCode"]')).to_be_visible()
+        self.page.locator('//*[@id="productCode"]').fill(str(codigo))
+        self.page.locator('//*[@id="quantity"]').fill(str(quantidade))
+        self.page.locator('//*[@id="wegDeliveryAvailabilityFormId"]/fieldset/div[2]/div/a').click()
 
-            try:  # Procuramos se há um frete no produto. Maioria não tem, então precisa verificar
-                frete = self.procurar("//tr/td[text()='% Frete']/..//td[2]").text
-            except:
-                frete = 0
+        self.documento.status(f"Efetuando pesquisa de {quantidade} unidades do item {codigo}")
 
-                        # Se encontrar tudo, então preenchemos no monitor
-            self.documento.preencher_weg(nome, valor, ipi, frete, icms, faturamento, entrega)
-            # E também na área de cáulco de impostos
-            self.documento.preencher_valores(valor, ipi, frete, icms)
-            self.documento.status(f"Pesquisa do item {codigo} realizada com sucesso.")
+        # Coleta dos dados retornados! Talvez usar um parser? Ou simplesmente uma lista ou dicionário? APRIMORAR!
+        nome = self.page.locator("//dt[text()='Descrição do Produto']/../dd").inner_text()
+        valor = self.page.locator("//th[text()='Preço Unitário']/../td").inner_text()
+        faturamento = self.page.locator("//th[text()='Entrega Planejada']/../../../tbody/tr/td[2]").inner_text()
+        entrega = self.page.locator("//th[text()='Entrega Planejada']/../../../tbody/tr/td[3]").inner_text()
+        icms = self.page.locator("//tr/td[text()='% ICMS (incluso)']/..//td[2]").inner_text()
+        ipi = self.page.locator("//tr/td[text()='% IPI (não incluso)']/..//td[2]").inner_text()            
 
-        except:
-            erro = WebDriverWait(self.driver, 5).until(presence_of_element_located((By.XPATH, "//div[@class='alert alert-danger alert-dismissible xtt-alert']/p")))        
-            self.documento.status(erro.text, "vermelho")
+        try:  # Procuramos se há um frete no produto. Maioria não tem, então precisa verificar
+            path = "//tr/td[text()='% Frete']/..//td[2]"
+            frete = expect(self.page.locator(path)).to_be_visible(timeout=2000)
+            frete = self.page.locator(path).inner_text()
+            
+        except AssertionError:
+            frete = 0
 
-
-    def logar(self):
-        self.documento.status("Efetuando login. Por favor aguarde.")
-        self.driver.get(self.pages["login"])    
-        self.driver.delete_all_cookies()
-
-        login = self.procurar("//input[@id='j_username']")
-        senha = self.procurar("//input[@id='j_password']")
-        login.send_keys(self.login)
-        senha.send_keys(self.senha)
-        login.send_keys(Keys.ENTER)
-        self.documento.status("Login efetuado com sucesso! Salvando Cookies.")
-        self.salvar_cookies()
-
-
-    def salvar_cookies(self):
-        cookies = self.driver.get_cookies()
-        with open(f"{caminho}\\cookies.json", 'w') as dados:
-            json.dump(cookies, dados, indent=4)
-        self.documento.status("Cookies salvos com sucesso.")
-
-    def aceitar(self):
-        try:
-            popup = WebDriverWait(self.driver, 5).until(presence_of_element_located((By.XPATH, "//div[@class='dp-bar-button dp-bar-dismiss cc-foreground-btn-456']")))        
-            popup.click()
-        except:
-            pass
-
-    def procurar(self, path):
-        return self.driver.find_element(By.XPATH, path)
-
-    def fechar(self):
-        self.driver.quit()
+                    # Se encontrar tudo, então preenchemos no monitor
+        self.documento.preencher_weg(nome, valor, ipi, frete, icms, faturamento, entrega)
+        # E também na área de cáulco de impostos
+        self.documento.preencher_valores(valor, ipi, frete, icms)
+        self.documento.status(f"Pesquisa realizada com sucesso")
 
 
 
-@xl.func
-def formatar(numero):
-        """ Formata um valor do tipo 'R$ 12.345,00' para 12345.00 ou remove o % """
-        try:  # Bloco try pra evitar problemas. Uma maneira de limpar os campos
-            if ("%" in numero):
-                return float(numero.replace("%", ""))
-            else:            
-                valor = numero.strip("R$ ")
-                valor = valor.replace(".", "")
-                valor = valor.replace(",", ".")
-                return float(valor)
-        except TypeError:
-            return None
+
+
+    def logar(self, create=False):
+        if create:
+            self.context = self.browser.new_context(user_agent="")
+            self.page = self.context.new_page()        
+        self.page.goto(self.page_login)
+        expect(self.page.locator('//*[@id="j_username"]'))
+        self.page.locator('//*[@id="j_username"]').fill(self.user_name)
+        self.page.locator('//*[@id="j_password"]').fill(self.user_pass)
+        self.page.locator('//*[@id="loginForm"]/div[3]/button').click()
+        self.context.storage_state(path=f"{caminho}\\state.json")
 
 
 
-@xl.func
-def calcular_total(x, y, total, qntd):
-    if x == y:
-        return float(total) * qntd
-    else:
-        return None
 
 
-def main():    
-    documento = Excel()  # Abre e configura o documento excel
-    scrapper = WEG("eletronvale@eletronvale.com.br", "98@Eletronvale28", documento)  # Novo coletor de dados
-    codigo, quantidade = documento.coletar()  # Coleta o código que o usuário definiu
-    scrapper.pesquisar(codigo, quantidade)  # Efetua a pesquisa
-    scrapper.fechar()
-
-
-
-# Como xlwings não funciona com caminho relativo, é preciso pegar o caminho absoluto do arquivo
 caminho = os.path.dirname(os.path.abspath(__file__))
-if __name__ == "__main__":
+def main():
+    Documento = Excel()  # Abre e configura o documento excel
+    codigo, quantidade = Documento.coletar()  # Coleta o código que o usuário definiu
+    Weg = Scrapper("eletronvale@eletronvale.com.br", "98@Eletronvale28", Documento, codigo, quantidade)  # Novo coletor de dados
+
+
+
+if __name__ == '__main__':
     main()
