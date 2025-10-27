@@ -90,7 +90,7 @@ class Scrapper:
         
 
         with sync_playwright() as playwright:
-            self.browser = playwright.chromium.launch()
+            self.browser = playwright.chromium.launch(headless=False)
 
             try:
                 self.documento.status("Conectanto com o servidor")
@@ -133,12 +133,11 @@ class Scrapper:
         try:  # Procuramos se há um frete no produto. Maioria não tem, então precisa verificar
             path = "//tr/td[text()='% Frete']/..//td[2]"
             frete = expect(self.page.locator(path)).to_be_visible(timeout=2000)
-            frete = self.page.locator(path).inner_text()
-            
+            frete = self.page.locator(path).inner_text()            
         except AssertionError:
             frete = 0
 
-                    # Se encontrar tudo, então preenchemos no monitor
+        # Se encontrar tudo, então preenchemos no monitor
         self.documento.preencher_weg(nome, valor, ipi, frete, icms, faturamento, entrega)
         # E também na área de cáulco de impostos
         self.documento.preencher_valores(valor, ipi, frete, icms)
