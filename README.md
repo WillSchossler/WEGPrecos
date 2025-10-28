@@ -5,7 +5,7 @@ O sistema utiliza a ferramenta Microsoft Excel para coletar e calcular os valore
 ## Dependências:
 ```
 Python
-Selenium
+Playwright
 xlwings
 ```
 
