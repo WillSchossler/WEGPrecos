@@ -14,7 +14,7 @@ def calcular_total(x, y, total, qntd):
 
 
 
-class Excel():
+class Excel:
     def __init__(self, nome="Precos.xlsm"):
         """ Handler que cuida da coleta, execução e inserção no excel """
         xl.Book(nome).set_mock_caller()  
@@ -48,15 +48,19 @@ class Excel():
         }   
 
 
-    def status(self, mensagem: str, cor=True):
+    def status(self, mensagem: str, cor):
         """ Envia uma mensagem de status """
         celula = self.sheet[self.weg["status"]]
-        if cor:  # Se não ouver argumento, então é amarelo
-            celula.font.color = (255, 255, 0)
-        else:  # Caso contrário é alerta, portando é vermelho
-            celula.font.color = (255, 55, 55)
-      
         celula.value = mensagem
+        
+        if cor == 'yellow':
+            celula.font.color = (255, 255, 0)
+        elif cor == 'red':
+            celula.font.color = (255, 55, 55)
+        elif cor == 'green':
+            celula.font.color = (55, 255, 55)
+
+        
 
 
     def preencher_weg(self, nome, valor, ipi, frete, icms, faturamento, entrega):
@@ -104,8 +108,6 @@ class Scrapper:
     def __init__(self, documento: Excel):
         """ Criação do objeto que vai fazer a invasão ao website da weg! Requer um documento xlwings"""
         self.documento = documento
-        self.documento.status("Conectando-se ao servidor")
-
         self.playwright = sync_playwright().start()
         self.device = self.playwright.devices['Desktop Edge']
         self.browser = self.playwright.chromium.launch(headless=True, channel="chromium")
@@ -119,17 +121,16 @@ class Scrapper:
 
         try:
             # Tenta carregar uma sessão anterior
+            self.documento.status("Carregando cookies", 'yellow')
             self.context = self.browser.new_context(**self.device, storage_state=f"{PATH}\\cookies.json")
             self.page = self.context.new_page()
             self.page.goto(self.pages['search'])
             expect(self.page.locator('//h2[@class="page-header" and text()="Disponibilidade e Preço"]')).to_be_visible(timeout=500)
         except FileNotFoundError:
             # Não existe arquivo de sessão
-            self.documento.status("Primeira sessão. Gerando cookies")
             self.logar(criar=True)
         except AssertionError:
             # Sessão expirou
-            self.documento.status("Sessão expirada. Realizando novo login")
             self.logar()
 
 
@@ -144,17 +145,18 @@ class Scrapper:
         if not (self.page.url == url_logar):
             self.page.goto(url_logar)
 
+        self.documento.status("Realizando login", 'yellow')
         self.page.locator('//*[@id="j_username"]').fill(self.user['name'])
         self.page.locator('//*[@id="j_password"]').fill(self.user['pass'])
         self.page.locator('//*[@id="loginForm"]/div[3]/button').click()
 
         self.context.storage_state(path=f"{PATH}\\cookies.json")        
-        self.documento.status("Login efetuado com sucesso")
-        
 
+        
 
     def pesquisar(self, codigo, quantidade=1):
         """ Pesquisa um determinado código WEG """
+        self.documento.status(f"Realizando pesquisa do item {codigo}", 'yellow')
         url_pesquisa = self.pages['search']
         if not (self.page.url == url_pesquisa):
             self.page.goto(url_pesquisa)
@@ -165,9 +167,9 @@ class Scrapper:
         
         try:
             # Coleta os dados
-            self.documento.status(f"Realizando pesquisa do item {codigo}")
             check = "//dt[text()='Descrição do Produto']/../dd"
-            expect(self.page.locator(check)).to_be_visible(timeout=500)
+            expect(self.page.locator(check)).to_be_visible(timeout=2000)
+            self.documento.status("Coletando dados do servidor", 'yellow')
             
             nome = self.page.locator(check).inner_text().strip()
             valor = self.page.locator("//th[text()='Preço Unitário']/../td").inner_text().strip()
@@ -185,12 +187,12 @@ class Scrapper:
 
             self.documento.preencher_calculo(valor, ipi, frete, icms)
             self.documento.preencher_weg(nome, valor, ipi, frete, icms, faturamento, entrega)
-            self.documento.status(f"Pesquisa do item {codigo} realizada com sucesso")
+            self.documento.status(f"Pesquisa do item {codigo} realizada com sucesso", 'green')
         
-        except AssertionError:
+        except AssertionError as erro:
             erro = self.page.locator('//div[@class="alert alert-danger alert-dismissible xtt-alert"]/p').inner_text().strip()
-            self.documento.status(erro)
-
+            self.documento.status(erro, 'red')
+            
 
 
     def close(self):
@@ -212,6 +214,7 @@ class Scrapper:
 
 def main():
     Documento = Excel()
+    Documento.status("Planilha conectada com sucesso", 'green')
     with Scrapper(Documento) as Weg:
         codigo, quantidade = Documento.coletar()
         Weg.pesquisar(codigo, quantidade)
