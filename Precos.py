@@ -125,7 +125,7 @@ class Scrapper:
             self.context = self.browser.new_context(**self.device, storage_state=f"{PATH}\\cookies.json")
             self.page = self.context.new_page()
             self.page.goto(self.pages['search'])
-            expect(self.page.locator('//h2[@class="page-header" and text()="Disponibilidade e Preço"]')).to_be_visible(timeout=500)
+            expect(self.page.locator('//h2[@class="page-header" and text()="Disponibilidade"]')).to_be_visible(timeout=500)
         except FileNotFoundError:
             # Não existe arquivo de sessão
             self.logar(criar=True)
