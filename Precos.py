@@ -1,7 +1,7 @@
 import os
 import xlwings as xl
 from playwright.sync_api import sync_playwright, expect
-PATH = os.path.dirname(os.path.abspath(__file__))
+PATH = os.path.dirname(__file__)
 
 
 @xl.func
@@ -122,7 +122,7 @@ class Scrapper:
         try:
             # Tenta carregar uma sessão anterior
             self.documento.status("Carregando cookies", 'yellow')
-            self.context = self.browser.new_context(**self.device, storage_state=f"{PATH}\\cookies.json")
+            self.context = self.browser.new_context(**self.device, storage_state=f"{PATH}/cookies.json")
             self.page = self.context.new_page()
             self.page.goto(self.pages['search'])
             expect(self.page.locator('//h2[@class="page-header" and text()="Disponibilidade"]')).to_be_visible(timeout=500)
@@ -150,7 +150,7 @@ class Scrapper:
         self.page.locator('//*[@id="j_password"]').fill(self.user['pass'])
         self.page.locator('//*[@id="loginForm"]/div[3]/button').click()
 
-        self.context.storage_state(path=f"{PATH}\\cookies.json")        
+        self.context.storage_state(path=f"{PATH}/cookies.json")        
 
         
 
