@@ -1,11 +1,25 @@
-# Projeto destinado à coleta de dados a partir de um determinado código WEG
+## Automação da coleta de dados do website da WEG a partir de um código.
 
-# Antes de começar é necessário sincronizar as dependencias e configurar o xlwings. Para isso, certifique-se de ter instalado o UV (pip install uv) e com o terminal aberto no root do repositório digite "uv sync".
-## Para configurar o xlwings, digite no terminal "xlwings install addin".
-### Na primeira execução da planilha é necessário conceder permissão. O próprio excel vai solicitar!
+### Basta executar a planilha, inserir o código e quantidade, e na aba addons, selecionar xlwings e clicar em "Run".
 
-# Também é necessário configurar um usuário WEG válido, que tenha acesso à consulta de preços. Para isso crie duas variáveis de ambiente, contendo o usuário "weguser" e a senha "wegpass".
-## Para criar as variáveis, no windows usar no CMD o comando "setx"
-### Por exemplo: setx weguser "teste123@gmail.com" / setx wegpass "123"
+## Antes de começar é necessário instalar as dependencias. Certifique-se de ter o python instalado e o terminal no diretório com os arquivos.
 
-# Após configurado basata abrir a planilha, inserir o código WEG e a quantidade. Para executar, na tab addons, selecione "xlwings" e clique em Run. O programa fará o resto sozinho.
+```
+uv sync
+```
+
+```
+xlwings install addin
+```
+
+## É necessário ter um usuário WEG válido com permissão para procurar dados. Armazene o login e senha em variáveis de ambiente (weguser e wegpass)
+
+No windows (CMD executado como administrador):
+```
+setx weguser "123@teste.com"
+```
+```
+setx wegpas "123"
+```
+
+### Na primeira execução é necessário conceder permissão. O próprio excel solicitará!
