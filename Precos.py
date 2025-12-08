@@ -112,7 +112,7 @@ class Scrapper:
         self.device = self.playwright.devices['Desktop Edge']
         self.browser = self.playwright.chromium.launch(headless=True, channel="chromium")
 
-        self.user = {"name": "eletronvale@eletronvale.com.br", "pass": "98@Eletronvale28"}
+        self.user = {"name": os.environ.get("weguser"), "pass": os.environ.get("wegpass")}
         self.pages = {
             "login": "https://www.weg.net/catalog/weg/BR/pt/login",
             "search": "https://www.weg.net/catalog/weg/BR/pt/research/delivery-availability"
