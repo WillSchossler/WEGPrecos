@@ -1,25 +1,26 @@
-## Automação da coleta de dados do website da WEG a partir de um código.
+## Automação da coleta de dados da WEG a partir de um código. Execute a planilha, insira o código, e em xlwings, execute "Run main".
 
-### Basta executar a planilha, inserir o código e quantidade, e na aba addons, selecionar xlwings e clicar em "Run".
 
-## Antes de começar é necessário instalar as dependencias. Certifique-se de ter o python instalado e o terminal no diretório com os arquivos.
+Antes de qualquer coisa instale as dependências
+```
+pip install xlwings; playwright
+```
+Após instalar as dependências, instale os recursos
+```
+xlwings addin install
+```
+```
+playwright install chromium
+```
+Na primeira execução da planilha o excel solicitará permissão. Conceda-a!
 
+## Após instaladas as dependências, é necessário configurar um usuário válido, com acesso à busca da WEG! Para isso, crie uma variável de ambiente para o usuário "weguser" e uma para a senha "wegpass".
+No windows basta executar (como administrador) os seguintes comandos no CMD
 ```
-uv sync
-```
-
-```
-xlwings install addin
-```
-
-## É necessário ter um usuário WEG válido com permissão para procurar dados. Armazene o login e senha em variáveis de ambiente (weguser e wegpass)
-
-No windows (CMD executado como administrador):
-```
-setx weguser "123@teste.com"
+setx weguser "usuario@email.com"
 ```
 ```
-setx wegpas "123"
+setx wegpass "senha123"
 ```
 
-### Na primeira execução é necessário conceder permissão. O próprio excel solicitará!
+### Recomenda-se instalar globalmente!
