@@ -133,7 +133,7 @@ class Scrapper:
             # Sessão expirou
             self.logar()
 
-
+# 10186131
 
     def logar(self, criar=False):
         """ Efetua login no servidor. Se não houver arquivo de sessão, cria um novo """        
@@ -175,7 +175,7 @@ class Scrapper:
             valor = self.page.locator("//th[text()='Preço Unitário']/../td").inner_text().strip()
             faturamento = self.page.locator("//th[text()='Entrega Planejada']/../../../tbody/tr/td[2]").inner_text().strip()
             entrega = self.page.locator("//th[text()='Entrega Planejada']/../../../tbody/tr/td[3]").inner_text().strip()
-            icms = self.page.locator("//tr/td[text()='% ICMS (incluso)']/..//td[2]").inner_text().strip()
+            icms = self.page.locator("(//tr/td[text()='% ICMS (incluso)'])[1]/..//td[2]").inner_text().strip()
             ipi = self.page.locator("//tr/td[text()='% IPI (não incluso)']/..//td[2]").inner_text().strip()      
 
             try:  # Procuramos se há um frete no produto
