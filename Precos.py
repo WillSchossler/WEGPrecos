@@ -133,7 +133,7 @@ class Scrapper:
             # Sessão expirou
             self.logar()
 
-# 10186131
+
 
     def logar(self, criar=False):
         """ Efetua login no servidor. Se não houver arquivo de sessão, cria um novo """        

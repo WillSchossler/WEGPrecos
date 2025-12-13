@@ -1,7 +1,9 @@
 ## Automação da coleta de dados da WEG a partir de um código. Execute a planilha, insira o código, e em xlwings, execute "Run main".
 
+### Se estiver usando windows, basta usar o "Instalador.py" para a automatizar a instalação.
+### Caso contrário, terás que instalar manualmente:
 
-Antes de qualquer coisa instale as dependências
+OBS: É necessário ter instalado o python, e configurado sua localização no PATH.:
 ```
 pip install xlwings; playwright
 ```

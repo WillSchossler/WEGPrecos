@@ -1,38 +1,55 @@
 import subprocess
 
+
 print("""Bem vindo ao instalador!
 O script a seguir irá instalar todas as dependências necessárias, porém pode demorar um pouco.
 Antes de mais nada, é necessário configurar um usuário WEG que tenha acesso a pesquisas.
     """)
 
+
 username = input("Por favor, insira o e-mail: ")
 password = input("\nPor favor, digite a senha: ")
 
+
 def rodar(cmd):
     comando = ' '.join(cmd)
+
     while True:
         try:
-            print(f"\nExecutando comando: {comando}. Por favor aguarde!")
+            print(f"\nExecutando {comando}. Por favor aguarde!")
             subprocess.run(args=cmd, check=True)
-            print("\nComando executado com sucesso!")
-            break
+            print(f"\n{comando} executado com sucesso!")
+            return True
 
         except:
-            user = input("\nOcorreu um erro. Gostaria de tentar novamente? Escolha 's': ")
+            user = input(f"\nOcorreu um erro ao executar {comando}. Insira 's' para tentar novamente, ou apenas 'enter' para continuar a instalação: ")
             if user.lower() != "s":
-                break
+                return False
+
 
 comandos = {
-    "xlwings": ["pip", "install", "xlwings"],
-}
-rodar(["pip", "install", "xlwings"])  # Instala xlwings
-rodar(["xlwings", "addin", "install"])  # Installa addin do excel
+    "Instalação do xlwings": ["pip", "install", "xlwings"],
+    "Atualização do addin xlwings pro excel": ["xlwings", "addin", "install"],
+    "Instalação do playwright": ["pip", "install", "playwright"],
+    "Instalação do browser chromium": ["playwright", "install", "chromium"],
+    }
 
-rodar(["pip", "install", "playwright"])  # Instala o playwright
-rodar(["playwright", "install", "chromium"])  # Instala o browser chromium
 
-rodar(["setx", "weguser", username])  # Define a variável de ambiente
-rodar(["setx", "wegpass", password])  # E a senha
+erros = []
+for indice, (comando, cmd) in enumerate(comandos.items()):
+    resultado = rodar(cmd)
+    
+    if not resultado:
+        erros.append(comando)
 
-print("""Tarefas executadas
-    """)
+
+if not erros:
+    input("\nParabéns! O instalador executou com sucesso todos os comandos! Pressione 'enter' para sair.")
+else:
+    input(f"""\nInfelizmente os seguintes comandos não puderam ser executados corretamente:
+{"\n".join(erros)}
+
+Por favor, resolva os erros e tente novamente.
+Pressine 'enter' para encerrar o instalador.""")
+
+
