@@ -27,3 +27,5 @@ setx wegpass "senha123"
 ```
 
 #### Recomenda-se instalar globalmente! Caso queira usar em um ambiente virtual, no addin xlwings, especifique a localização do interpretador virtual!
+
+##### Se ocorrer um erro ao executar a planilha, tente definir as variáveis de ambiente novamente. Se a função preço não estiver funcionando, no addin do xlwings execute "Import Functions".
